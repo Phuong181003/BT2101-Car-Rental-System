@@ -1,26 +1,28 @@
 Use ACRES; 
 
--- Question 1
+-- List all cars of make “Toyota”.Sort records by CarID in ascending order. Display CarID, LPlate and CarClassID.
 SELECT CarID, LPlate, CarClassID 
 FROM car
 WHERE Make = "Toyota" 
 ORDER BY CarID;
 
--- Question 2
+-- List all unique persons who rent cars between 1 May 2022 to 30 Jun 2022 (i.e cars are rented from 1 May 2022 and returned by 30 Jun 2022
+-- Display DLicenseNum only. (Note: A person can be an employee or a customer).
 SELECT DISTINCT p.DLicenseNum 
 FROM person p
 INNER JOIN rental r
 ON p.DLicenseNum = r.DLicenseNum 
 WHERE "2022-05-01" <= r.FromDate AND r.ToDate <= "2022-06-30";
 
--- Question 3
+-- List average number of day seach car was rented.
+-- Sort by Average Rental Days in descending order and display the top 5 records only i.e., cars with the most average rental days will appear on the top. Display CarID, average number of days rented as AverageRentalDays.
 SELECT CarID, AVG(DATEDIFF(ToDate, FromDate)) AS AverageRentalDays 
 FROM rental 
 GROUP BY CarID
 ORDER BY AverageRentalDays DESC
 LIMIT 5;
 
--- Question 4
+-- List all rentals with drop-off charge made in May2022(i.e.,cars on rental during the period from 1 May 2022 to 31 May 2022). Sort by Distance in descending order. Display the RentalID and distance travelled during rental as Distance.
 SELECT DISTINCT r.RentalID, (r.RetOdom - r.IniOdom) AS Distance
 FROM rental r
 INNER JOIN drop_off_charge d ON r.FromLoc = d.FromLoc
@@ -28,42 +30,44 @@ INNER JOIN drop_off_charge d ON r.FromLoc = d.FromLoc
 WHERE r.FromDate >= '2022-05-01' AND r.ToDate <= '2022-05-31'
 ORDER BY Distance DESC;
 
--- Question 5
+-- List the number of distinct cars that had been returned to address with addressid “AID229”.Sort by NumberOfRentals in descending order. Display CarID and number of rentals as NumberOfRentals.
 SELECT CarID, COUNT(rentalID) AS NumberOfRentals
 FROM rental 
 WHERE ToLOc = 'AID229'
 GROUP BY CarID
 ORDER BY NumberOfRentals DESC;
 
--- Question 6
+-- List all customers (excluding employees who rent cars) whose first name contains “m” or “M”. Sort records by DLicenseNum in ascending order. Display DLicenseNum, FName, LName and PhoneNum.
 SELECT p.DLicenseNum, Fname, Lname, PhoneNum
 FROM person p
 INNER JOIN customer c ON p.DLicenseNum = c.DLicenseNum
 WHERE FName LIKE '%m%' OR FName LIKE '%M%'
 ORDER BY p.DLicenseNum;
 
--- Question 7
+-- List the top 5 most popular cars determined by its highest number of rentals. Sort records by NumberOfRentals in descending order. Display CarID and number of rentals as NumberOfRentals.
 SELECT CarID, COUNT(CarID) AS NumberOfRentals 
 FROM rental
 GROUP BY CarID
 ORDER BY NumberOfRentals DESC 
 LIMIT 5;
 
--- Question 8
+-- List all managers. Sort records by DLicenseNum in ascending order. Display DLicenseNum, FullName
+-- which is made up of FName, MName and LName, and WorkLoc.
 SELECT p.DLicenseNum, CONCAT(FName,' ', MName, ' ', LName) AS FullName, WorkLoc 
 FROM person p 
 INNER JOIN employee e ON p.DLicenseNum = e.DLicenseNum 
 WHERE EmpType = 'manager'
 ORDER BY p.DLicenseNum;
 
--- Question 9
+-- List all luxury cars made by Tesla. Sort records by CarID in ascending order. Display CarID and the car location city as City.
 SELECT CarID, City
 FROM car
 INNER JOIN address ON address.AddressID = car.CarLoc
 WHERE CarClassID = 'l' AND Make = 'Tesla'
 ORDER BY CarID;
 
--- Question 10
+-- List the number of and employees (those in each city. Sort records by City in ascending order. Display
+-- City, NumberOfCustomers and NumberOfEmployees
 SELECT City, 
 		SUM(NumberOfCustomerPerAdd) AS NumberOfCustomers, 
         SUM(NumberOfEmployeePerAdd) AS NumberOfEmployees
@@ -80,7 +84,7 @@ ON address.AddressID = dt.AddressID
 GROUP BY City
 ORDER BY City;
 
--- Question 11
+-- List the top 5 employees whose work city is NOT the same as their home address city. Sort records by DLicenseNum in ascending order. Display DLicenseNum, city employee works in as WorkCity, city employee lives in as AddressCity.
 SELECT e.DLicenseNum, a1.City, a2.City
 FROM employee e
 INNER JOIN person p ON e.DLicenseNum = p.DLicenseNum
@@ -90,7 +94,7 @@ WHERE a1.City <> a2.City
 ORDER BY e.DLicenseNum 
 LIMIT 5;
 
--- Question 12
+-- List all employees who work in the city “Sydney”. Display DLicenseNum, FName, LName, latest rental date (i.e., latest ‘FromDate’) as LatestRentalDate.
 SELECT emp.*, MAX(FromDate) AS LatestRentalDate
 FROM rental 
 INNER JOIN 
@@ -102,7 +106,8 @@ INNER JOIN
     ON rental.DLicenseNum = emp.DLicenseNum
 GROUP BY emp.DLicenseNum;
 
--- Question 13
+-- Calculate the percentage of cross-city rentals in the rental records. A cross-city rental is identified as a rental where the city of the “From Location” and the “To Location” is different. Display the percentage
+-- as CrossCityPercent. Round the percentage up to 2 decimal places, e.g., 50.99.
 SELECT ROUND(COUNT(*) * 100 / (SELECT COUNT(*) FROM rental) , 2) AS CrossCityPercent
 FROM (
 	SELECT r.RentalID, a1.City AS FromCity, a2.City AS ToCity
@@ -111,7 +116,8 @@ FROM (
 	INNER JOIN address a2 ON a2.AddressID = r.ToLoc
 	WHERE a1.City != a2.City) AS cr;
 
--- Question 14
+-- List all clerks who are offered the 50% discount for employees. Sort records by RentalDistance in
+-- descending order. Display RentalID, DLicenseNum, and rental miles as RentalDistance.
 SELECT r.RentalID, cl.DLicenseNum, (r.RetOdom - r.IniOdom) AS RentalDistance
 FROM rental r
 INNER JOIN 
@@ -121,7 +127,8 @@ INNER JOIN
 WHERE DATEDIFF(r.ToDate, r.FromDate) < 14
 ORDER BY RentalDistance DESC;
 
--- Question 15
+-- Calculate the average rental duration for each carclass.Sort records by AvgRentalDuration in ascending order. Display the car class ID and the average rental duration in days as AvgRentalDuration. Exclude
+-- rentals where the car was returned on the same day it was rented.
 SELECT CarClassID, AVG(DATEDIFF(ToDate, FromDate)) AS AvgRentalDuration
 FROM rental r
 INNER JOIN car ON car.CarID = r.CarID
@@ -129,7 +136,8 @@ WHERE DATEDIFF(ToDate, FromDate) > 0
 GROUP BY CarClassID
 ORDER BY AvgRentalDuration;
 
--- Question 16
+-- List the persons who have rented only luxury cars and no other carclass.Display the person’s fullname consisting of FName, MName and LName as FullName and the total count of luxury car rentals as LuxuryRentalCount. 
+-- You do not have to consider the possible upgrading cases. (Note: A person can be an employee or a customer)
 SELECT CONCAT(Fname, ' ', MName, ' ', LName) AS FullName, 
 		COUNT(CarClassID) AS LuxuryRentalCount
 FROM person p 
@@ -144,7 +152,8 @@ WHERE CarClassID = 'l'
 GROUP BY FullName
 ORDER BY FullName;
 
--- Question 17
+-- List employees who have rented the same car (same CarID) at least twice. Sort records by EmployeeName in ascending order. 
+-- Display the employee's full name consisting of FName, MName and LName as EmployeeName, the CarID, and the count of rentals as RentalCount
 SELECT CONCAT(FName, ' ', MName, ' ', LName) AS EmployeeName,
 		CarID, COUNT(CarID) AS RentalCount
 FROM employee e
