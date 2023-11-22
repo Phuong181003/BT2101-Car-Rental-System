@@ -1,4 +1,4 @@
-Use ACRES; 
+Use ACRES;   
 
 -- List all cars of make “Toyota”.Sort records by CarID in ascending order. Display CarID, LPlate and CarClassID.
 SELECT CarID, LPlate, CarClassID 
